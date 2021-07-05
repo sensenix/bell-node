@@ -1,0 +1,3 @@
+module.exports = {
+  secret: "xx-xxxx-xxxx-xxxx-xxxxx-xxxx-xxxx-xx"
+};
