@@ -1,0 +1,3 @@
+module.exports = {
+  scripts_directory: "c:/git/bell-scripts"
+};

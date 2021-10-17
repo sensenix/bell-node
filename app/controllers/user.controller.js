@@ -1,3 +1,5 @@
+const config = require("../config/config");
+
 exports.allAccess = (req, res) => {
   res.status(200).send("Welcome to Bell public content");
 };
@@ -6,15 +8,16 @@ exports.expand = async (req, res) => {
     const fs = require('fs')
     const execSync = require('child_process').execSync
     const spawnSync = require('child_process').spawnSync
+    const scriptsDir = config.scripts_directory.replace(/\/$/, "")
     try {
-        const dir = fs.opendirSync('app/scripts')
+        const dir = fs.opendirSync(scriptsDir)
         let dirEnt
         let arrFull = []
         let fileIndex = 0
         while ((dirEnt = dir.readSync()) !== null) {
             if (dirEnt.name.startsWith((req.body.item.nodeclass + '_')) ) {
-                const scriptFile = 'app/scripts/' + dirEnt.name
-                const auditFile = 'app/scripts/audit.ps1'
+                const scriptFile = scriptsDir + '/' + dirEnt.name
+                const auditFile = scriptsDir + '/audit.ps1'
                 let data
                 let err
                 let execRes
@@ -120,10 +123,11 @@ exports.getContent = async (req, res) => {
     const fs = require('fs')
     const execSync = require('child_process').execSync
     const spawnSync = require('child_process').spawnSync
+    const scriptsDir = config.scripts_directory.replace(/\/$/, "")
     try {
 
-        const scriptFile = 'app/scripts/' + req.body.item.nodeclass + '.ps1'
-        const auditFile = 'app/scripts/audit.ps1'
+        const scriptFile = scriptsDir + '/' + req.body.item.nodeclass + '.ps1'
+        const auditFile = scriptsDir + '/audit.ps1'
 
         if (fs.existsSync(scriptFile)) {
             let data

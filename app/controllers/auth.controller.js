@@ -1,8 +1,9 @@
-const config = require("../config/auth.config");
+const authConfig = require("../config/auth.config");
+const config = require("../config/config");
 var jwt = require("jsonwebtoken");
 
 exports.signin = (req, res) => {
-    const scriptFile = 'app/scripts/login.ps1'
+    const scriptFile = config.scripts_directory.replace(/\/$/, "") + '/login.ps1'
     const execSync = require('child_process').execSync
     const spawnSync = require('child_process').spawnSync
     const login = req.body.name
@@ -80,7 +81,7 @@ exports.signin = (req, res) => {
         })
     arr.shift() // remove groups (1st element)
 
-    var token = jwt.sign({ id: login, groups: groups }, config.secret, {
+    var token = jwt.sign({ id: login, groups: groups }, authConfig.secret, {
         expiresIn: 3600 // 8 hour // 86400 = 24 hours
     });
 
