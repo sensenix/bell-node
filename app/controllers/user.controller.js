@@ -1,5 +1,6 @@
 const config = require("../config/config");
 const helper = require("./helperfunc.js").data;
+global.tagger = require("./taghash.js").data;
 
 exports.allAccess = (req, res) => {
   res.status(200).send("Welcome to Bell public content");
@@ -30,7 +31,7 @@ exports.expand = async (req, res) => {
                     let userName = req.userId
                     let userGroups = req.userGroups
                     let nodeName = req.body.item.name
-                    let nodeTags = req.body.item.nodetags
+					let nodeTags = global.tagger.n2tag(req.body.item.nodetags)
                     let [executor, parlist] = helper.script_command(scriptFile, [userName, userGroups, nodeName, nodeTags])
                     if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlist.join(" "))
                     try {
@@ -71,7 +72,7 @@ exports.expand = async (req, res) => {
                                         'name': (a[0] ? a[0] : '(No data)'),
                                         'nodeclass': a[1],
                                         'nodetype': (typeof a[2] !== 'undefined' ? a[2] : 'empty'),
-                                        'nodetags': (typeof a[3] !== 'undefined' ? a[3].replace(/\r$/, '') : ''),
+                                        'nodetags': (typeof a[3] !== 'undefined' ? global.tagger.tag2n(a[3].replace(/\r$/, '')) : ''),
                                         'children': (a[2] == 'folder' ? [] : null)
                                     }
                                     if (a[2] != 'folder') {
@@ -92,7 +93,7 @@ exports.expand = async (req, res) => {
                 return 0;
             }
         )
-
+		//console.log(arrFull)
         return res.status(200).send(arrFull)
 
     } catch (err) {
@@ -122,8 +123,7 @@ exports.getContent = async (req, res) => {
             let userName = req.userId
             let userGroups = req.userGroups
             let nodeName = req.body.item.name
-            let nodeTags = req.body.item.nodetags
-
+            let nodeTags = global.tagger.n2tag(req.body.item.nodetags)
             let [executor, parlist] = helper.script_command(scriptFile, [userName, userGroups, nodeName, nodeTags])
             if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlist.join(" "))
             try {
@@ -161,7 +161,6 @@ exports.getContent = async (req, res) => {
                     return res.status(500).send('File for download not found: ' + escape(fileName))
                 }
             }
-
             return res.status(200).send(data)
         }
         else {
