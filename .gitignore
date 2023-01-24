@@ -3,10 +3,6 @@
 # Learn more about .gitignore:
 #     https://www.atlassian.com/git/tutorials/saving-changes/gitignore
 
-# Config (secret key and other)
-app/config/auth.config.js
-app/config/config.js
-
 # Scripts
 app/scripts/
 

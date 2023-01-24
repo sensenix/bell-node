@@ -1,30 +1,33 @@
 const authConfig = require("../config/auth.config");
 const config = require("../config/config");
+const helper = require("./helperfunc.js").data;
 var jwt = require("jsonwebtoken");
 
 exports.signin = (req, res) => {
-    const scriptFile = config.scripts_directory.replace(/\/$/, "") + '/login.ps1'
+    const fs = require('fs')
+	const partFile = config.scripts_directory.replace(/\/$/, "") + '/login'
+    const scriptFile = helper.extSniffer(fs, partFile)
+	if (scriptFile === "") { 
+		helper.loggy(fs, 2, "No login file found! " + partFile + ".*") 
+		return res.status(401).send({accessToken: null, message: "No login script found" })
+	}
     const execSync = require('child_process').execSync
     const spawnSync = require('child_process').spawnSync
     const login = req.body.name
     const password = req.body.password
-    const cmd2 = `powershell.exe -ExecutionPolicy ByPass -File ${scriptFile} ${login} `
-    const cmd = cmd2 + `${password}`
-    console.log('----->' + cmd2)
     let data
     let err
     let execRes
     let errCode
     let groups = ''
     try {
-        // Old version with execSync
-        //data = execSync(cmd, {encoding: 'utf-8'}).replace(/\n$/, '')
-
-        execRes = spawnSync('powershell.exe', [ '-ExecutionPolicy', 'ByPass', '-File', scriptFile, login, password ], { encoding: 'utf-8' })
+		let [executor, parlist] = helper.script_command(scriptFile, [login, password])
+		helper.loggy(fs, 1, 'LOGIN => ' + executor + " " + parlist.join(" "))
+        execRes = spawnSync(executor, parlist, { encoding: 'utf-8' })
         data = execRes.stdout
         err = execRes.stderr
         if (err) {
-            console.log(err)
+            if (config.log_errors) helper.loggy(fs, 2, "ERR => " + err)
             return res.status(500).send('Error executing script ' + scriptFile + ': ' + err)
         }
         errCode = execRes.status
@@ -33,9 +36,6 @@ exports.signin = (req, res) => {
     }
     catch (error) {
         errCode = error.status;  // Might be 127 in your example.
-        //error.message; // Holds the message you typically want.
-        //error.stderr;  // Holds the stderr output. Use `.toString()`.
-        //error.stdout;  // Holds the stdout output. Use `.toString()`.
         console.error('ERROR, CODE= ' + errCode + ', '  + error.message)
     }
 

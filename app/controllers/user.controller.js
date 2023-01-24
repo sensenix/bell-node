@@ -1,8 +1,10 @@
 const config = require("../config/config");
+const helper = require("./helperfunc.js").data;
 
 exports.allAccess = (req, res) => {
   res.status(200).send("Welcome to Bell public content");
 };
+
 
 exports.expand = async (req, res) => {
     const fs = require('fs')
@@ -17,55 +19,38 @@ exports.expand = async (req, res) => {
         while ((dirEnt = dir.readSync()) !== null) {
             if (dirEnt.name.startsWith((req.body.item.nodeclass + '_')) ) {
                 const scriptFile = scriptsDir + '/' + dirEnt.name
-                const auditFile = scriptsDir + '/audit.ps1'
                 let data
                 let err
                 let execRes
+				let parlist
+				let executor
 
-                if (scriptFile.endsWith('.ps1')) {
-                    // PowerShell script
+                if (scriptFile.endsWith('.ps1') || scriptFile.endsWith('.py')) {
+                    // PowerShell script or Python script
                     let userName = req.userId
                     let userGroups = req.userGroups
                     let nodeName = req.body.item.name
                     let nodeTags = req.body.item.nodetags
-                    const creds = `"${userName}" "${userGroups}" "${nodeName}" "${nodeTags}"`
-                    const cmd = `powershell.exe -ExecutionPolicy ByPass -File ${scriptFile} ${creds}`
-                    console.log('=====>' + cmd)
+                    let [executor, parlist] = helper.script_command(scriptFile, [userName, userGroups, nodeName, nodeTags])
+                    if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlist.join(" "))
                     try {
-                        // Old version with execSync
-                        //data = execSync(cmd, { encoding: 'utf-8' }).replace(/\n$/, '')
-
-                        if (fs.existsSync(auditFile)) {
-                            try {
-                                let auditRes = spawnSync('powershell.exe', ['-ExecutionPolicy', 'ByPass', '-File', auditFile, userName, userGroups, nodeName, nodeTags], {encoding: 'utf-8'})
-                                auditErr = auditRes.stderr
-                                if (auditErr) {
-                                    console.log(err)
-                                    return res.status(500).send('Error in audit, contact administrator')
-                                }
-                            } catch (error) {
-                                errCode = error.status;
-                                console.error('ERROR IN AUDIT: ' + error.message)
-                                return res.status(500).send('Error in audit, contact administrator')
-                            }
-                        }
-
-                        execRes = spawnSync('powershell.exe', [ '-ExecutionPolicy', 'ByPass', '-File', scriptFile, userName, userGroups, nodeName, nodeTags ], { encoding: 'utf-8' })
+                        execRes = spawnSync(executor, parlist, { encoding: 'utf-8' })
                         data = execRes.stdout
                         err = execRes.stderr
                         if (err) {
-                            console.log(err)
+                            if (config.log_errors) helper.loggy(fs, 2, "ERR => " + err)
+							auditErr = helper.exec_audit(spawnSync, fs, scriptsDir, scriptFile, userName, userGroups, nodeName, nodeTags, helper.strip(err)) 
+							if (auditErr) { return res.status(500).send(err+ " " + auditErr) }
                             return res.status(500).send('Error executing script ' + scriptFile + ': ' + err)
                         }
                         data = data.replace(/\n$/, '')
-                        console.log(data)
+                        if (config.log_folder) helper.loggy(fs, 3, data)
+						auditErr = helper.exec_audit(spawnSync, fs, scriptsDir, scriptFile, userName, userGroups, nodeName, nodeTags, "") 
+						if (auditErr) { return res.status(500).send(auditErr) }
                     }
                     catch (error) {
                         errCode = error.status;
-                        //error.message; // Holds the message you typically want.
-                        //error.stderr;  // Holds the stderr output. Use `.toString()`.
-                        //error.stdout;  // Holds the stdout output. Use `.toString()`.
-                        console.error('ERROR: ' + error.message)
+                        helper.loggy(fs, 2, 'ERROR ==> ' + error.message)
                         return res.status(500).send('Error executing script ' + scriptFile + ': \n' + error.message)
                     }
 
@@ -126,60 +111,39 @@ exports.getContent = async (req, res) => {
     const scriptsDir = config.scripts_directory.replace(/\/$/, "")
     try {
 
-        const scriptFile = scriptsDir + '/' + req.body.item.nodeclass + '.ps1'
-        const auditFile = scriptsDir + '/audit.ps1'
-
-        if (fs.existsSync(scriptFile)) {
+        const partFile = scriptsDir + '/' + req.body.item.nodeclass
+		scriptFile = helper.extSniffer(fs, partFile)
+        if (scriptFile > "") {
             let data
             let err
             let execRes
 
-            // PowerShell script
+            // PowerShell script or Python script
             let userName = req.userId
             let userGroups = req.userGroups
             let nodeName = req.body.item.name
             let nodeTags = req.body.item.nodetags
 
-            const creds = `"${userName}" "${userGroups}" "${nodeName}" "${nodeTags}"`
-            const cmd = `powershell.exe -ExecutionPolicy ByPass -File ${scriptFile} ${creds}`
-            console.log('=====>' + cmd)
-
+            let [executor, parlist] = helper.script_command(scriptFile, [userName, userGroups, nodeName, nodeTags])
+            if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlist.join(" "))
             try {
-                // Old version with execSync
-                //data = execSync(cmd, { encoding: 'utf-8' }).replace(/\n$/, '')
-
-                if (fs.existsSync(auditFile)) {
-                    try {
-                        let auditRes = spawnSync('powershell.exe', ['-ExecutionPolicy', 'ByPass', '-File', auditFile, userName, userGroups, nodeName, nodeTags], {encoding: 'utf-8'})
-                        let auditErr = auditRes.stderr
-                        if (auditErr) {
-                            console.log(err)
-                            return res.status(500).send('Error in audit, contact administrator')
-                        }
-
-                    } catch (error) {
-                        errCode = error.status;
-                        console.error('ERROR IN AUDIT: ' + error.message)
-                        return res.status(500).send('Error in audit, contact administrator')
-                    }
-                }
-
-                execRes = spawnSync('powershell.exe', [ '-ExecutionPolicy', 'ByPass', '-File', scriptFile, userName, userGroups, nodeName, nodeTags ], { encoding: 'utf-8' })
+                execRes = spawnSync(executor, parlist, { encoding: 'utf-8' })
                 data = execRes.stdout
                 err = execRes.stderr
                 if (err) {
-                    console.log(err)
+					if (config.log_errors) helper.loggy(fs, 2, "ERR => " + err)
+					auditErr = helper.exec_audit(spawnSync, fs, scriptsDir, scriptFile, userName, userGroups, nodeName, nodeTags, helper.strip(err)) 
+					if (auditErr) { return res.status(500).send(err+ " " + auditErr) }
                     return res.status(500).send('Error executing script ' + scriptFile + ': \n' + err)
                 }
+				if (config.log_data) helper.loggy(fs, 3, data)
+				auditErr = helper.exec_audit(spawnSync, fs, scriptsDir, scriptFile, userName, userGroups, nodeName, nodeTags, "") 
+				if (auditErr) { return res.status(500).send(auditErr) }
                 data = data.replace(/\n$/, '')
-                console.log(data)
             }
             catch (error) {
                 errCode = error.status;  // Might be 127 in your example.
-                //error.message; // Holds the message you typically want.
-                //error.stderr;  // Holds the stderr output. Use `.toString()`.
-                //error.stdout;  // Holds the stdout output. Use `.toString()`.
-                console.error('ERROR: ' + error.message)
+				helper.loggy(fs, 2, "ERR => " + error.message)
                 return res.status(500).send('Error executing script ' + scriptFile + ': \n' + error.message)
             }
 
@@ -193,7 +157,7 @@ exports.getContent = async (req, res) => {
                     let shortName = fileName.replace(/^.*[\\\/]/, '')
                     data = shortName + '@' + data
                 } catch (err) {
-                    console.error(err)
+					helper.loggy(fs, 2, "ERR => " + err)
                     return res.status(500).send('File for download not found: ' + escape(fileName))
                 }
             }
@@ -201,7 +165,7 @@ exports.getContent = async (req, res) => {
             return res.status(200).send(data)
         }
         else {
-            return res.status(500).send('Script ' + scriptFile + ' not found')
+            return res.status(500).send('Script ' + partFile + '.* not found')
         }
     } catch (err) {
         console.error(err)
