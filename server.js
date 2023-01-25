@@ -1,17 +1,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const cors = require("cors");
 const os = require("os");
+const config = require("./app/config/config");
 
 const app = express();
 const hostname = os.hostname().toLowerCase();
-
-var corsOptions = {
-//  origin: `http://${hostname}:8081`
-    origin: `*`
-};
-
-app.use(cors(corsOptions));
 
 // parse requests of content-type - application/json
 app.use(bodyParser.json());
@@ -29,10 +22,15 @@ require('./app/routes/auth.routes')(app);
 require('./app/routes/user.routes')(app);
 
 // set port, listen for requests
-const PORT = process.env.PORT || 8090;
+const PORT = config.PORT;
+
+console.log('')
+console.log('Bell server v0.53 \033[32m https://actionatdistance.com \033[0m*********************')
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
+  console.log('\033[33mServer is running on port ' + PORT + '\033[0m');
+  console.log('')
 });
 
 function initial() {
 }
+
