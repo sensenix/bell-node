@@ -21,8 +21,8 @@ exports.signin = (req, res) => {
     let errCode
     let groups = ''
     try {
-		let [executor, parlist] = helper.script_command(scriptFile, [login, password])
-		helper.loggy(fs, 1, 'LOGIN => ' + executor + " " + parlist.join(" "))
+		let [executor, parlist, parlistQ] = helper.script_command(scriptFile, [login, password])
+		helper.loggy(fs, 1, 'LOGIN => ' + executor + " " + parlistQ.join(" "))
         execRes = spawnSync(executor, parlist, { encoding: 'utf-8' })
         data = execRes.stdout
         err = execRes.stderr

@@ -9,7 +9,7 @@ module.exports = {
 
   linux_ps1: "pwsh",
   linux_ps1_appendix: "",
-  linix_py: "python3",
+  linux_py: "python3",
 
   // tags can contain sensitive information (passwords), so server replaces them with id's when sending to a client
   // for debug purposes you can disable it so you can restart server whithout breaking the functionality of a tree.

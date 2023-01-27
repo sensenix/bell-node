@@ -48,12 +48,21 @@ methods.script_executor = function (script) {
 methods.script_command = function(script, params) {
 	const [executor, suffix] = methods.script_executor(script)
 	let parlist = []
+	let parlistQ = []
 	if (suffix != "") { parlist.concat(suffix.split(" ")) }
 	parlist.push(script)
 	params.forEach((item, index) => {
-	  parlist.push('"' + item + '"')
+      if ((params.length == 2) && (index == 1)) { // this is password
+	    parlistQ.push('"<<<<< Password hidden >>>>>"') 
+	  }
+	  else { parlistQ.push('"' + item + '"') }
+	  if ((process.platform == "linux") || script.endsWith('py')) {
+	    parlist.push(item)
+	  } else {
+	    parlist.push('"' + item + '"')
+	  }
       });
-	return [executor, parlist]
+	return [executor, parlist, parlistQ]
 };
 
 methods.exec_audit = function(spawnSync, fs, scriptsDir, scriptFile, userName, userGroups, nodeName, nodeTags, errstat) {
@@ -71,8 +80,8 @@ methods.exec_audit = function(spawnSync, fs, scriptsDir, scriptFile, userName, u
 		}
 	}
 	
-	const [executor, parlist] = methods.script_command(auditFile, [scriptFile, userName, userGroups, nodeName, nodeTags, errstat])
-	if (config.log_audit_commands) methods.loggy(fs, 0, 'EXECAUDIT => ' + executor + " " + parlist.join(" "))
+	const [executor, parlist, parlistQ] = methods.script_command(auditFile, [scriptFile, userName, userGroups, nodeName, nodeTags, errstat])
+	if (config.log_audit_commands) methods.loggy(fs, 0, 'EXECAUDIT => ' + executor + " " + parlistQ.join(" "))
     let auditRes = spawnSync(executor, parlist, {encoding: 'utf-8'})
     auditErr = auditRes.stderr
 	if (auditErr) {

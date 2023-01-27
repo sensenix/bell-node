@@ -25,9 +25,10 @@ require('./app/routes/user.routes')(app);
 const PORT = config.PORT;
 
 console.log('')
-console.log('Bell server v0.53 \033[32m https://actionatdistance.com \033[0m*********************')
+console.log('Bell server v0.55 \033[32m https://actionatdistance.com \033[0m*********************')
+console.log('\033[33mServer is running on port \033[31m' + PORT + '\033[0m');
+console.log('\033[33mScripts directory is \033[31m' + config.scripts_directory + '\033[0m');
 app.listen(PORT, () => {
-  console.log('\033[33mServer is running on port ' + PORT + '\033[0m');
   console.log('')
 });
 

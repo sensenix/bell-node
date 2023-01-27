@@ -32,8 +32,8 @@ exports.expand = async (req, res) => {
                     let userGroups = req.userGroups
                     let nodeName = req.body.item.name
 					let nodeTags = global.tagger.n2tag(req.body.item.nodetags)
-                    let [executor, parlist] = helper.script_command(scriptFile, [userName, userGroups, nodeName, nodeTags])
-                    if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlist.join(" "))
+                    let [executor, parlist, parlistQ] = helper.script_command(scriptFile, [userName, userGroups, nodeName, nodeTags])
+                    if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlistQ.join(" "))
                     try {
                         execRes = spawnSync(executor, parlist, { encoding: 'utf-8' })
                         data = execRes.stdout
@@ -124,8 +124,8 @@ exports.getContent = async (req, res) => {
             let userGroups = req.userGroups
             let nodeName = req.body.item.name
             let nodeTags = global.tagger.n2tag(req.body.item.nodetags)
-            let [executor, parlist] = helper.script_command(scriptFile, [userName, userGroups, nodeName, nodeTags])
-            if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlist.join(" "))
+            let [executor, parlist, parlistQ] = helper.script_command(scriptFile, [userName, userGroups, nodeName, nodeTags])
+            if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlistQ.join(" "))
             try {
                 execRes = spawnSync(executor, parlist, { encoding: 'utf-8' })
                 data = execRes.stdout
