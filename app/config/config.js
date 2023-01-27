@@ -1,7 +1,7 @@
 module.exports = {
 
   PORT: 8090,
-  scripts_directory: "C:/Scripts/CURRENT",
+  scripts_directory: "C:/Scripts/TOCHANGE",
 
   windows_ps1: "Powershell.exe",
   windows_ps1_appendix: "-ExecutionPolicy ByPass -File",
