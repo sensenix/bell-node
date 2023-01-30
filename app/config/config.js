@@ -1,7 +1,9 @@
 module.exports = {
 
   PORT: 8090,
-  scripts_directory: "C:/Scripts/TOCHANGE",
+  workers: 2,
+  scripts_directory: "C:/Scripts/CURRENT",
+  login_timeout: 3600, // seconds
 
   windows_ps1: "Powershell.exe",
   windows_ps1_appendix: "-ExecutionPolicy ByPass -File",
@@ -11,10 +13,6 @@ module.exports = {
   linux_ps1_appendix: "",
   linux_py: "python3",
 
-  // tags can contain sensitive information (passwords), so server replaces them with id's when sending to a client
-  // for debug purposes you can disable it so you can restart server whithout breaking the functionality of a tree.
-  tags_hiding: true, 
-
   audit_enabled: true, // set to false if you don't need audit/if using AuditNull, this will improve the preformance
 
   log_file:           "bell.log", // path is relative to place where node is started or provide an absolute path
@@ -22,5 +20,10 @@ module.exports = {
   log_errors:         true,
   log_audit_commands: false,  // typically for debug only
   log_folder:         false,  // usually short and can be logged
-  log_result:         false   // typically for debug only
+  log_result:         false,  // typically for debug only
+
+  // secrets (usually passwords), quoted in tags with ###secret name###
+  secrets:            new Map([
+      ['mypassword', 'Welcome123']
+    ])
 };

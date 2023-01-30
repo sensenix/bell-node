@@ -1,10 +1,23 @@
 const config = require("../config/config");
 const helper = require("./helperfunc.js").data;
-global.tagger = require("./taghash.js").data;
 
 exports.allAccess = (req, res) => {
   res.status(200).send("Welcome to Bell public content");
 };
+
+function secrets(fs, tags) {
+	res = ""
+	console.log("!!!"+tags)
+	tags.split("###").forEach( function(val,index,array) {
+		if ((index & 1) == 0) { res += val }
+		else if (config.secrets.has(val)) { return config.secrets.get(val) }
+		else {
+			helper.loggy(fs, 2, "SECRET not found: '" + val + "' (case sensitive)")
+			res += val
+		}
+	})
+	return tags
+}
 
 
 exports.expand = async (req, res) => {
@@ -31,7 +44,7 @@ exports.expand = async (req, res) => {
                     let userName = req.userId
                     let userGroups = req.userGroups
                     let nodeName = req.body.item.name
-					let nodeTags = global.tagger.n2tag(req.body.item.nodetags)
+					let nodeTags = secrets(fs, req.body.item.nodetags)
                     let [executor, parlist, parlistQ] = helper.script_command(scriptFile, [userName, userGroups, nodeName, nodeTags])
                     if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlistQ.join(" "))
                     try {
@@ -72,7 +85,7 @@ exports.expand = async (req, res) => {
                                         'name': (a[0] ? a[0] : '(No data)'),
                                         'nodeclass': a[1],
                                         'nodetype': (typeof a[2] !== 'undefined' ? a[2] : 'empty'),
-                                        'nodetags': (typeof a[3] !== 'undefined' ? global.tagger.tag2n(a[3].replace(/\r$/, '')) : ''),
+                                        'nodetags': (typeof a[3] !== 'undefined' ? a[3].replace(/\r$/, '') : ''),
                                         'children': (a[2] == 'folder' ? [] : null)
                                     }
                                     if (a[2] != 'folder') {
@@ -123,7 +136,7 @@ exports.getContent = async (req, res) => {
             let userName = req.userId
             let userGroups = req.userGroups
             let nodeName = req.body.item.name
-            let nodeTags = global.tagger.n2tag(req.body.item.nodetags)
+            let nodeTags = secrets(fs, req.body.item.nodetags)
             let [executor, parlist, parlistQ] = helper.script_command(scriptFile, [userName, userGroups, nodeName, nodeTags])
             if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlistQ.join(" "))
             try {

@@ -82,7 +82,7 @@ exports.signin = (req, res) => {
     arr.shift() // remove groups (1st element)
 
     var token = jwt.sign({ id: login, groups: groups }, authConfig.secret, {
-        expiresIn: 3600 // 8 hour // 86400 = 24 hours
+        expiresIn: config.login_timeout
     });
 
     res.status(200).send({

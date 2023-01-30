@@ -22,7 +22,7 @@ methods.loggy = function(fs, severity, str) { // 0 - info, 1 - yellow, 2 - red, 
   let datestr = ""
   if (severity<3) {
     let myDate = new Date();
-     datestr = myDate.toISOString() + " ";
+     datestr = myDate.toISOString().substring(0,19) + " ";
   }
   console.log(datestr + cols[severity] + str + '\033[0m')
   fs.appendFileSync(config.log_file, datestr + levels[severity] + " " + str);
