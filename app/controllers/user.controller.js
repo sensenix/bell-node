@@ -7,7 +7,6 @@ exports.allAccess = (req, res) => {
 
 function secrets(fs, tags) {
 	res = ""
-	console.log("!!!"+tags)
 	tags.split("###").forEach( function(val,index,array) {
 		if ((index & 1) == 0) { res += val }
 		else if (config.secrets.has(val)) { return config.secrets.get(val) }

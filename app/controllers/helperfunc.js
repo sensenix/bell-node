@@ -51,6 +51,7 @@ methods.script_command = function(script, params) {
 	let parlistQ = []
 	if (suffix != "") { parlist.concat(suffix.split(" ")) }
 	parlist.push(script)
+	parlistQ.push(script)
 	params.forEach((item, index) => {
       if ((params.length == 2) && (index == 1)) { // this is password
 	    parlistQ.push('"<<<<< Password hidden >>>>>"') 
@@ -67,7 +68,7 @@ methods.script_command = function(script, params) {
 
 methods.exec_audit = function(spawnSync, fs, scriptsDir, scriptFile, userName, userGroups, nodeName, nodeTags, errstat) {
 
-	if (config.audit_enabled) { return "" } // skip altogether
+	if (! config.audit_enabled) { return "" } // skip altogether
 
 	// audit can be PowerShell or python based
 	let auditFile = scriptsDir + '/audit.ps1'
@@ -75,7 +76,7 @@ methods.exec_audit = function(spawnSync, fs, scriptsDir, scriptFile, userName, u
 		auditFile = scriptsDir + '/audit.py'
 		if (! fs.existsSync(auditFile)) {
 			msg = "No audit file audit.ps1 or .py found in " + scriptsDir
-			methods.loggy(fs, 0, "AUDITFILE => " + msg, logf)
+			methods.loggy(fs, 0, "AUDITFILE => " + msg)
 			return msg
 		}
 	}

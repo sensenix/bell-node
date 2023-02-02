@@ -20,7 +20,7 @@ if (cluster.isMaster) {
   cluster.schedulingPolicy = cluster.SCHED_RR; // round robin
 
   console.log('')
-  console.log('Bell server v0.60 \033[32m https://actionatdistance.com \033[0m*********************')
+  console.log('Bell server v0.61 \033[32m https://actionatdistance.com \033[0m*********************')
   console.log('\033[33mServer is running on port \033[31m' + PORT + '\033[0m');
   console.log('\033[33mScripts directory is \033[31m' + config.scripts_directory + '\033[0m');
   console.log('\033[33mNumber of workers is \033[31m' + totalCPUs + '\033[0m');
