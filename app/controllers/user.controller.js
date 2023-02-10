@@ -18,6 +18,25 @@ function secrets(fs, tags) {
 	return tags
 }
 
+// sort names, case is ignored.
+// sort by priority, which is after ; then by name 
+// default priority (if no ;) - 100
+
+function getPriority(name) {
+	a = name.split(';')
+	if (a.length == 1) return '00100';
+    return ("00000"+a[1]).slice(-5);
+}
+
+function sorter(a, b) { 
+    if (a.priority < b.priority) return -1;
+    if (a.priority > b.priority) return 1;
+	// a.priority == b.priority
+	if (a.name.toString().toLowerCase() < b.name.toString().toLowerCase()) return -1;
+    if (a.name.toString().toLowerCase() > b.name.toString().toLowerCase()) return 1;
+    return 0;
+}
+
 
 exports.expand = async (req, res) => {
     const fs = require('fs')
@@ -81,7 +100,8 @@ exports.expand = async (req, res) => {
                                     let a = el.split('|')
                                     let obj = {
                                         'id': req.body.item.id + '.' + dirEnt.name + '.' + index.toString(), // Generate unique node id
-                                        'name': (a[0] ? a[0] : '(No data)'),
+                                        'name': (a[0] ? a[0].split(';')[0] : '(No data)'),
+										'priority': (a[0] ? getPriority(a[0]) : '00000'),
                                         'nodeclass': a[1],
                                         'nodetype': (typeof a[2] !== 'undefined' ? a[2] : 'empty'),
                                         'nodetags': (typeof a[3] !== 'undefined' ? a[3].replace(/\r$/, '') : ''),
@@ -98,14 +118,7 @@ exports.expand = async (req, res) => {
             }
         }
         dir.closeSync()
-        arrFull = arrFull.sort(
-            function(a, b) {
-                if (a.name.toString().toLowerCase() < b.name.toString().toLowerCase()) return -1;
-                if (a.name.toString().toLowerCase() > b.name.toString().toLowerCase()) return 1;
-                return 0;
-            }
-        )
-		//console.log(arrFull)
+        arrFull = arrFull.sort( sorter )
         return res.status(200).send(arrFull)
 
     } catch (err) {

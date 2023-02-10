@@ -2,7 +2,7 @@ module.exports = {
 
   PORT: 8090,
   workers: 2,
-  scripts_directory: "C:/Scripts/CURRENT",
+  scripts_directory: "C:/Scripts/TOCHANGE",
   login_timeout: 3600, // seconds
 
   windows_ps1: "Powershell.exe",
