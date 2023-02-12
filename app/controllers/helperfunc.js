@@ -28,6 +28,21 @@ methods.loggy = function(fs, severity, str) { // 0 - info, 1 - yellow, 2 - red, 
   fs.appendFileSync(config.log_file, datestr + levels[severity] + " " + str);
 };
 
+// clean dir
+methods.clean_dir =  function(dir) {
+	if (dir.length < 6) { return } // fool protection
+	let p = process.platform;
+	const execSync = require('child_process').execSync;
+	let cmd;
+	if (p === "win32") { cmd = 'pushd "' + dir + '" && (rd /s /q "' + dir + '" 2>nul & popd)' }
+	else { cmd = 'rm -rfv ' + dir + '/*'  }
+	try {
+	  execSync(cmd, { stdio: 'ignore' });
+	} catch (err) {
+      loggy(fs, 2, 'ERROR ==> Failed to clean dir ' + dir + ' Errmsg: ' + err.message)
+	}
+}	
+
 // returns command and some additional flags
 methods.script_executor = function (script) {
 	let p = process.platform
@@ -83,7 +98,8 @@ methods.exec_audit = function(spawnSync, fs, scriptsDir, scriptFile, userName, u
 	
 	const [executor, parlist, parlistQ] = methods.script_command(auditFile, [scriptFile, userName, userGroups, nodeName, nodeTags, errstat])
 	if (config.log_audit_commands) methods.loggy(fs, 0, 'EXECAUDIT => ' + executor + " " + parlistQ.join(" "))
-    let auditRes = spawnSync(executor, parlist, {encoding: 'utf-8'})
+	let wdir = config.work_directory + '/' + process.pid.toString();
+    let auditRes = spawnSync(executor, parlist, {encoding: 'utf-8', cwd: wdir })
     auditErr = auditRes.stderr
 	if (auditErr) {
 		methods.loggy(fs, 2, "AUDITERR => " + auditErr) // always log as it is a fatal config problem

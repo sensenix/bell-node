@@ -37,6 +37,42 @@ function sorter(a, b) {
     return 0;
 }
 
+function getBase64(file) {
+   var reader = new FileReaderSync();
+   reader.readAsDataURL(file);
+   reader.onload = function () {
+     console.log(reader.result);
+   };
+   reader.onerror = function (error) {
+     console.log('Error: ', error);
+   };
+}
+
+function imageEncoder(fs, data) {
+	var arr = data.split('<img src=')
+    var count = arr.length;
+	var glued = '';
+    for(var i = 0; i < count; i++) {
+      var item = arr[i];
+	  if (i > 0) {
+		while (item.charAt(0) == ' ') { item = item.substring(1) } // skip spaces
+		term = item.charAt(0); // image quote, must be ' or "
+		parsed = item.split(term); // 0 el is blank, 1 is file name, 2 is rest
+		parsed[0] = '<img src=';
+		filename = config.work_directory + '/' + process.pid.toString() + '/' + parsed[1];
+        try {
+            const data = fs.readFileSync(filename);
+		    parsed[1] = 'data:image/png;base64,'+data.toString('base64');
+            if (config.log_encoding) { helper.loggy(fs, 0, 'File encoded: ' + filename); }
+          } catch (err) {
+            helper.loggy(fs, 2, 'Failed to open: ' + filename);
+        }
+		item = parsed.join(term);
+	  }
+      glued += item;
+	}
+	return glued;
+}	
 
 exports.expand = async (req, res) => {
     const fs = require('fs')
@@ -44,6 +80,7 @@ exports.expand = async (req, res) => {
     const spawnSync = require('child_process').spawnSync
     const scriptsDir = config.scripts_directory.replace(/\/$/, "")
     try {
+		helper.clean_dir(config.work_directory + '/' + process.pid.toString());
         const dir = fs.opendirSync(scriptsDir)
         let dirEnt
         let arrFull = []
@@ -65,8 +102,9 @@ exports.expand = async (req, res) => {
 					let nodeTags = secrets(fs, req.body.item.nodetags)
                     let [executor, parlist, parlistQ] = helper.script_command(scriptFile, [userName, userGroups, nodeName, nodeTags])
                     if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlistQ.join(" "))
+					wdir = config.work_directory + '/' + process.pid.toString();
                     try {
-                        execRes = spawnSync(executor, parlist, { encoding: 'utf-8' })
+                        execRes = spawnSync(executor, parlist, { encoding: 'utf-8', cwd: wdir })
                         data = execRes.stdout
                         err = execRes.stderr
                         if (err) {
@@ -136,7 +174,7 @@ exports.getContent = async (req, res) => {
     const spawnSync = require('child_process').spawnSync
     const scriptsDir = config.scripts_directory.replace(/\/$/, "")
     try {
-
+		helper.clean_dir(config.work_directory + '/' + process.pid.toString());
         const partFile = scriptsDir + '/' + req.body.item.nodeclass
 		scriptFile = helper.extSniffer(fs, partFile)
         if (scriptFile > "") {
@@ -151,8 +189,9 @@ exports.getContent = async (req, res) => {
             let nodeTags = secrets(fs, req.body.item.nodetags)
             let [executor, parlist, parlistQ] = helper.script_command(scriptFile, [userName, userGroups, nodeName, nodeTags])
             if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlistQ.join(" "))
+			wdir = config.work_directory + '/' + process.pid.toString();
             try {
-                execRes = spawnSync(executor, parlist, { encoding: 'utf-8' })
+                execRes = spawnSync(executor, parlist, { encoding: 'utf-8', cwd: wdir })
                 data = execRes.stdout
                 err = execRes.stderr
                 if (err) {
@@ -172,6 +211,9 @@ exports.getContent = async (req, res) => {
                 return res.status(500).send('Error executing script ' + scriptFile + ': \n' + error.message)
             }
 
+            if (req.body.item.nodetype === 'html') {
+				data = imageEncoder(fs, data);
+			}
             if (req.body.item.nodetype === 'file') {
                 // File name returned
 

@@ -23,7 +23,8 @@ exports.signin = (req, res) => {
     try {
 		let [executor, parlist, parlistQ] = helper.script_command(scriptFile, [login, password])
 		helper.loggy(fs, 1, 'LOGIN => ' + executor + " " + parlistQ.join(" "))
-        execRes = spawnSync(executor, parlist, { encoding: 'utf-8' })
+		wdir = config.work_directory + '/' + process.pid.toString();
+        execRes = spawnSync(executor, parlist, { encoding: 'utf-8', cwd: wdir })
         data = execRes.stdout
         err = execRes.stderr
         if (err) {

@@ -2,7 +2,8 @@ module.exports = {
 
   PORT: 8090,
   workers: 2,
-  scripts_directory: "C:/Scripts/TOCHANGE",
+  scripts_directory: "C:/Scripts/CURRENT",
+  work_directory: "C:/Scripts/WORK", 
   login_timeout: 3600, // seconds
 
   windows_ps1: "Powershell.exe",
@@ -21,6 +22,7 @@ module.exports = {
   log_audit_commands: false,  // typically for debug only
   log_folder:         false,  // usually short and can be logged
   log_result:         false,  // typically for debug only
+  log_encoding:       true,   // log successfull base64 image encoding done by server.
 
   // secrets (usually passwords), quoted in tags with ###secret name###
   secrets:            new Map([

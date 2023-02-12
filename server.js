@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const os = require("os");
 const config = require("./app/config/config");
+const helper = require("./app/controllers/helperfunc.js").data;
 
 const hostname = os.hostname().toLowerCase();
 
@@ -20,10 +21,13 @@ if (cluster.isMaster) {
   cluster.schedulingPolicy = cluster.SCHED_RR; // round robin
 
   console.log('')
-  console.log('Bell server v0.70 \033[32m https://actionatdistance.com \033[0m*********************')
+  console.log('Bell server v0.71 \033[32m https://actionatdistance.com \033[0m*********************')
   console.log('\033[33mServer is running on port \033[31m' + PORT + '\033[0m');
   console.log('\033[33mScripts directory is \033[31m' + config.scripts_directory + '\033[0m');
   console.log('\033[33mNumber of workers is \033[31m' + totalCPUs + '\033[0m');
+  console.log('\033[33mWork directory is \033[31m' + config.work_directory + '\033[0m');
+  
+  helper.clean_dir(config.work_directory);
 
   // Fork workers.
   for (let i = 0; i < totalCPUs; i++) {
@@ -42,6 +46,7 @@ if (cluster.isMaster) {
 function start() {
 
   const app = express();
+  const fs = require('fs');
 
   // parse requests of content-type - application/json
   app.use(bodyParser.json());
@@ -60,8 +65,13 @@ function start() {
 
   // set port, listen for requests
   const PORT = config.PORT;
+  let wdir = config.work_directory + '/' + process.pid.toString();
+  fs.mkdir(wdir, { recursive: true }, (err) => {
+    if (err) { return console.error(err); }
+    console.log('\033[33mCreating directory \033[31m' + wdir + '\033[0m');
+  });
   app.listen(PORT, () => {
-    console.log("\033[33mlistening on " + PORT + " PID = " + process.pid + "\033[0m")
+    console.log('\033[33mListening on \033[31m' + PORT + "\033[33m PID = \033[31m" + process.pid + '\033[0m')
   });
 }
 
