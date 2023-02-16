@@ -109,4 +109,29 @@ methods.exec_audit = function(spawnSync, fs, scriptsDir, scriptFile, userName, u
 	return "" // ok
 };
 
+methods.get_secret = function(spawnSync, fs, scriptsDir, secretTag) {
+
+	// script secret.* can be PowerShell or python based
+	let secretFile = scriptsDir + '/secret.ps1'
+	if (! fs.existsSync(secretFile)) {
+		secretFile = scriptsDir + '/secret.py'
+		if (! fs.existsSync(secretFile)) {
+			return [1,'secret script not found']
+		}
+	}
+	
+	const [executor, parlist, parlistQ] = methods.script_command(secretFile, [secretTag])
+	if (config.log_secrets) methods.loggy(fs, 0, 'EXECSECRET => ' + executor + " " + parlistQ.join(" "))
+	let wdir = config.work_directory + '/' + process.pid.toString();
+    let secretRes = spawnSync(executor, parlist, {encoding: 'utf-8', cwd: wdir })
+    secretErr = secretRes.stderr
+	if (secretErr) {
+		methods.loggy(fs, 2, "SECRETERR => " + auditErr) 
+		return [2,secretErr]
+	}
+	
+	return [0,secretRes.stdout.replace(/(\r\n|\n|\r)/gm, "")] // remove line breaks if any, single line output is expected
+};
+
+
 exports.data = methods;

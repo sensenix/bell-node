@@ -5,17 +5,23 @@ exports.allAccess = (req, res) => {
   res.status(200).send("Welcome to Bell public content");
 };
 
-function secrets(fs, tags) {
+function secrets(spawnSync, fs, scriptsDir, tags) {
 	res = ""
 	tags.split("###").forEach( function(val,index,array) {
-		if ((index & 1) == 0) { res += val }
-		else if (config.secrets.has(val)) { return config.secrets.get(val) }
+		if ((index & 1) == 0) { res += val; }
+		else if (config.secrets.has(val)) { res += config.secrets.get(val); }
 		else {
-			helper.loggy(fs, 2, "SECRET not found: '" + val + "' (case sensitive)")
-			res += val
+			let retcode
+			[retcode, svalue] = helper.get_secret(spawnSync, fs, scriptsDir, val)
+			if (retcode>0) {
+				helper.loggy(fs, 2, "ERRSecretScript " + val + " ERR: " + svalue)
+				res += val
+			} else {
+				res += svalue
+			}
 		}
 	})
-	return tags
+	return res
 }
 
 // sort names, case is ignored.
@@ -99,7 +105,7 @@ exports.expand = async (req, res) => {
                     let userName = req.userId
                     let userGroups = req.userGroups
                     let nodeName = req.body.item.name
-					let nodeTags = secrets(fs, req.body.item.nodetags)
+					let nodeTags = secrets(spawnSync, fs, scriptsDir, req.body.item.nodetags)
                     let [executor, parlist, parlistQ] = helper.script_command(scriptFile, [userName, userGroups, nodeName, nodeTags])
                     if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlistQ.join(" "))
 					wdir = config.work_directory + '/' + process.pid.toString();
@@ -186,7 +192,7 @@ exports.getContent = async (req, res) => {
             let userName = req.userId
             let userGroups = req.userGroups
             let nodeName = req.body.item.name
-            let nodeTags = secrets(fs, req.body.item.nodetags)
+			let nodeTags = secrets(spawnSync, fs, scriptsDir, req.body.item.nodetags)
             let [executor, parlist, parlistQ] = helper.script_command(scriptFile, [userName, userGroups, nodeName, nodeTags])
             if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlistQ.join(" "))
 			wdir = config.work_directory + '/' + process.pid.toString();

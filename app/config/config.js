@@ -23,8 +23,11 @@ module.exports = {
   log_folder:         false,  // usually short and can be logged
   log_result:         false,  // typically for debug only
   log_encoding:       true,   // log successfull base64 image encoding done by server.
+  log_secrets:        false,  // log executions of the secret script, if it exists
 
   // secrets (usually passwords), quoted in tags with ###secret name###
+  // for more advanced secrets, place the script secret.ps1 or secret.py into scripts directory
+  // script gets 1st parameter (script name) and returns secret value using Write-host or print.
   secrets:            new Map([
       ['mypassword', 'Welcome123']
     ])
