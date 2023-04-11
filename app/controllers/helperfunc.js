@@ -25,7 +25,9 @@ methods.loggy = function(fs, severity, str) { // 0 - info, 1 - yellow, 2 - red, 
      datestr = myDate.toISOString().substring(0,19) + " ";
   }
   console.log(datestr + cols[severity] + str + '\033[0m')
-  fs.appendFileSync(config.log_file, datestr + levels[severity] + " " + str);
+  let crlf = '\n'
+  if (config.log_force_windows_crlf) { crlf = '\r\n' }
+  fs.appendFileSync(config.log_file, datestr + levels[severity] + " " + str + crlf);
 };
 
 // clean dir

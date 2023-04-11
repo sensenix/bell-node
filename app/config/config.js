@@ -17,6 +17,7 @@ module.exports = {
   audit_enabled: true, // set to false if you don't need audit/if using AuditNull, this will improve the preformance
 
   log_file:           "bell.log", // path is relative to place where node is started or provide an absolute path
+  log_force_windows_crlf: false,   // add extra \r for log lines, used when running in Ubuntu docker while log files is on windows
   log_commands:       true,
   log_errors:         true,
   log_audit_commands: false,  // typically for debug only
