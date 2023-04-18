@@ -2,6 +2,7 @@ module.exports = {
 
   PORT: 8090,
   workers: 2,
+  // in Windows, use / slash, not \ slash
   scripts_directory: "C:/Scripts/CURRENT",
   work_directory: "C:/Scripts/WORK", 
   login_timeout: 3600, // seconds
@@ -14,7 +15,7 @@ module.exports = {
   linux_ps1_appendix: "",
   linux_py: "python3",
 
-  audit_enabled: true, // set to false if you don't need audit/if using AuditNull, this will improve the preformance
+  audit_enabled: true, // set to false if you don't need audit/if using AuditNull, this will improve the performance
 
   log_file:           "bell.log", // path is relative to place where node is started or provide an absolute path
   log_force_windows_crlf: false,   // add extra \r for log lines, used when running in Ubuntu docker while log files is on windows
