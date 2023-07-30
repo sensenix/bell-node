@@ -101,7 +101,7 @@ methods.exec_audit = function(spawnSync, fs, scriptsDir, scriptFile, userName, u
 	const [executor, parlist, parlistQ] = methods.script_command(auditFile, [scriptFile, userName, userGroups, nodeName, nodeTags, errstat])
 	if (config.log_audit_commands) methods.loggy(fs, 0, 'EXECAUDIT => ' + executor + " " + parlistQ.join(" "))
 	let wdir = config.work_directory + '/' + process.pid.toString();
-    let auditRes = spawnSync(executor, parlist, {encoding: 'utf-8', cwd: wdir })
+    let auditRes = spawnSync(executor, parlist, {encoding: 'utf8', cwd: wdir })
     auditErr = auditRes.stderr
 	if (auditErr) {
 		methods.loggy(fs, 2, "AUDITERR => " + auditErr) // always log as it is a fatal config problem
@@ -125,7 +125,7 @@ methods.get_secret = function(spawnSync, fs, scriptsDir, secretTag) {
 	const [executor, parlist, parlistQ] = methods.script_command(secretFile, [secretTag])
 	if (config.log_secrets) methods.loggy(fs, 0, 'EXECSECRET => ' + executor + " " + parlistQ.join(" "))
 	let wdir = config.work_directory + '/' + process.pid.toString();
-    let secretRes = spawnSync(executor, parlist, {encoding: 'utf-8', cwd: wdir })
+    let secretRes = spawnSync(executor, parlist, {encoding: 'utf8', cwd: wdir })
     secretErr = secretRes.stderr
 	if (secretErr) {
 		methods.loggy(fs, 2, "SECRETERR => " + auditErr) 

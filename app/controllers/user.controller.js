@@ -110,7 +110,7 @@ exports.expand = async (req, res) => {
                     if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlistQ.join(" "))
 					wdir = config.work_directory + '/' + process.pid.toString();
                     try {
-                        execRes = spawnSync(executor, parlist, { encoding: 'utf-8', cwd: wdir })
+                        execRes = spawnSync(executor, parlist, { encoding: 'utf8', cwd: wdir })
                         data = execRes.stdout
                         err = execRes.stderr
                         if (err) {
@@ -197,7 +197,7 @@ exports.getContent = async (req, res) => {
             if (config.log_commands) helper.loggy(fs, 0, 'EXEC => ' + executor + " " + parlistQ.join(" "))
 			wdir = config.work_directory + '/' + process.pid.toString();
             try {
-                execRes = spawnSync(executor, parlist, { encoding: 'utf-8', cwd: wdir })
+                execRes = spawnSync(executor, parlist, { encoding: 'utf8', cwd: wdir })
                 data = execRes.stdout
                 err = execRes.stderr
                 if (err) {
